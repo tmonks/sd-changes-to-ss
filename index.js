@@ -1,10 +1,11 @@
 require("dotenv").config();
 
 const client = require("smartsheet");
-const axios = require("axios");
 
 const smartsheet = client.createClient({ accessToken: process.env.SMARTSHEET_API_KEY });
 const smartsheetId = "6991861635147652";
+
+const serviceDesk = require("./servicedesk");
 
 // Retrieve a comma-separated list of row ID's from current Smartsheet
 const retrieveSmartsheetRows = async (sheetId) => {
@@ -90,91 +91,18 @@ const addRowsToSmartsheet = async (sheetId, rows) => {
   }
 };
 
-// Retrieve current changes from ServiceDesk
-const getChanges = async () => {
-  const BASE_URL = "https://api.samanage.com";
-  const HEADERS = {
-    "X-Samanage-Authorization": "Bearer " + process.env.SOLARWINDS_API_KEY,
-    Accept: "application/vnd.samanage.v2.1+json",
-    "Content-Type": "application/json",
-  };
-
-  const requestOptions = {
-    headers: HEADERS,
-    params: {
-      layout: "short",
-    },
-  };
-
-  let currentPage = 1;
-  let totalPages = 1;
-  let changes = [];
-
-  while (currentPage <= totalPages) {
-    requestOptions.params.page = currentPage;
-
-    try {
-      const results = await axios.get(BASE_URL + "/changes.json", requestOptions);
-      console.log(`found ${results.data.length} changes`);
-
-      totalPages = results.headers["x-total-pages"] || 1;
-      console.log("Page " + currentPage + ": Found " + results.data.length + " incidents");
-      currentPage++;
-
-      changes = changes.concat(
-        results.data.map((change) => {
-          return {
-            toBottom: true,
-            cells: [
-              {
-                // column: "id",
-                value: change.id,
-                columnId: 2712127197734788,
-              },
-              {
-                // column: "Title",
-                value: change.name,
-                columnId: 1586227290892164,
-              },
-              {
-                // column: "Department",
-                value: change.department ? change.department.name : "",
-                columnId: 3838027104577412,
-              },
-              {
-                // column: "State",
-                value: change.state,
-                columnId: 5526876964841348,
-              },
-              {
-                // column: "Assignee Name",
-                value: change.assignee ? change.assignee.name : "",
-                columnId: 2149177244313476,
-              },
-              {
-                // column: "Priority",
-                value: change.priority,
-                columnId: 8904576685369220,
-              },
-            ],
-          };
-        })
-      );
-    } catch (error) {
-      console.error(error);
-    }
-  }
-  return changes;
-};
-
 // Main function
 const updateSmartsheet = async (smartsheetId) => {
   let rowsToDelete = await retrieveSmartsheetRows(smartsheetId);
   await deleteSmartsheetRows(smartsheetId, rowsToDelete);
-  const changes = await getChanges();
+  const changes = await serviceDesk.getChanges();
   console.log(`Found ${changes.length} total`);
   await addRowsToSmartsheet(smartsheetId, changes);
 };
 
 // addRowsToSmartsheet(smartsheetId);
-updateSmartsheet(smartsheetId);
+// updateSmartsheet(smartsheetId);
+
+(async () => {
+  console.log(await serviceDesk.getChanges());
+})();
