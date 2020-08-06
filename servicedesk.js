@@ -1,6 +1,7 @@
 const axios = require("axios");
+require("dotenv").config();
 
-// Retrieve current changes from ServiceDesk
+// Retrieve all current changes from ServiceDesk
 module.exports.getChanges = async () => {
   const BASE_URL = "https://api.samanage.com";
   const HEADERS = {
@@ -12,7 +13,8 @@ module.exports.getChanges = async () => {
   const requestOptions = {
     headers: HEADERS,
     params: {
-      layout: "short",
+      page: 1,
+      per_page: 100,
     },
   };
 
@@ -25,10 +27,10 @@ module.exports.getChanges = async () => {
 
     try {
       const results = await axios.get(BASE_URL + "/changes.json", requestOptions);
-      console.log(`found ${results.data.length} changes`);
+      // console.log(`found ${results.data.length} changes`);
 
       totalPages = results.headers["x-total-pages"] || 1;
-      console.log("Page " + currentPage + ": Found " + results.data.length + " incidents");
+      // console.log("Page " + currentPage + ": Found " + results.data.length + " incidents");
       currentPage++;
 
       changes = changes.concat(
@@ -37,32 +39,32 @@ module.exports.getChanges = async () => {
             toBottom: true,
             cells: [
               {
-                // column: "id",
+                // id
                 value: change.id,
                 columnId: 2712127197734788,
               },
               {
-                // column: "Title",
+                // Title
                 value: change.name,
                 columnId: 1586227290892164,
               },
               {
-                // column: "Department",
+                // Department
                 value: change.department ? change.department.name : "",
                 columnId: 3838027104577412,
               },
               {
-                // column: "State",
+                // State
                 value: change.state,
                 columnId: 5526876964841348,
               },
               {
-                // column: "Assignee Name",
+                // Assignee Name
                 value: change.assignee ? change.assignee.name : "",
                 columnId: 2149177244313476,
               },
               {
-                // column: "Priority",
+                // Priority
                 value: change.priority,
                 columnId: 8904576685369220,
               },
@@ -70,8 +72,9 @@ module.exports.getChanges = async () => {
           };
         })
       );
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      err.message = "Unable to get changes from Service Desk: " + err.message;
+      throw err;
     }
   }
   return changes;
