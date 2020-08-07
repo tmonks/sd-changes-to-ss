@@ -23,10 +23,7 @@ Run `npm install`
 Create a `.env` file in the parent directory containing your API keys for Smartsheet and Service Desk
 
 ```
-# "Node 1" token for helpdesk@lcgh.net user
 SMARTSHEET_API_KEY={SMARTSHEET TOKEN}
-
-# Help Desk User
 SOLARWINDS_API_KEY={SOLARWINDS API KEY}
 ```
 
