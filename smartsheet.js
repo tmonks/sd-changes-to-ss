@@ -3,7 +3,22 @@ require("dotenv").config();
 const client = require("smartsheet");
 const smartsheet = client.createClient({ accessToken: process.env.SMARTSHEET_API_KEY });
 
-// Retrieve a comma-separated list of row ID's from current Smartsheet
+// Retrieve column info (including ID's) from the specified Smartsheet
+module.exports.getColumnIds = async (sheetId) => {
+  sheetOptions = {
+    id: "" + sheetId,
+  };
+
+  try {
+    let sheetInfo = await smartsheet.sheets.getSheet(sheetOptions);
+    return sheetInfo.columns;
+  } catch (err) {
+    err.message = "Unable to get Smartsheet column IDs: " + err.message;
+    throw err;
+  }
+};
+
+// Retrieve a comma-separated list of all row ID's from current Smartsheet
 module.exports.getRowIds = async (sheetId) => {
   sheetOptions = {
     id: "" + sheetId,
@@ -13,6 +28,7 @@ module.exports.getRowIds = async (sheetId) => {
 
   try {
     let sheetInfo = await smartsheet.sheets.getSheet(sheetOptions);
+    // create a comma-separated list from the array of rows returned
     rowIds = sheetInfo.rows.map((row) => row.id).join(",");
   } catch (err) {
     err.message = "Unable to get Smartsheet row IDs: " + err.message;
@@ -21,7 +37,7 @@ module.exports.getRowIds = async (sheetId) => {
   return rowIds;
 };
 
-// Delete list of row ID's from Smartsheet
+// Delete list of rowIds (comma-separated list) from Smartsheet
 module.exports.deleteRowsById = async (sheetId, rowIds) => {
   const options = {
     sheetId,

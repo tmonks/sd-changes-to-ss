@@ -47,14 +47,21 @@ const formatChanges = (changes) => {
 // Main function
 const updateSmartsheet = async (smartsheetId) => {
   try {
+    // get all row IDs from Smartsheet
     let rowsToDelete = await smartSheet.getRowIds(smartsheetId);
+
+    // Delete all rows from Smartsheet
     let deletionResult = await smartSheet.deleteRowsById(smartsheetId, rowsToDelete);
-    // console.log(deletionResult.message + ": deleted " + deletionResult.result.length + " rows");
+
+    // Get a list of all the changes from Service Desk
     const serviceDeskChanges = await serviceDesk.getChanges();
+
+    // Convert the Service Desk changes into Smartsheet rows
     const smartSheetRows = await formatChanges(serviceDeskChanges);
-    // console.log(`Inserting ${smartSheetRows.length} changes...`);
+
+    // Add the new rows to the now empty Smartsheet
     let addResult = await smartSheet.addRows(smartsheetId, smartSheetRows);
-    // console.log(addResult.message + ": added " + addResult.result.length + " rows");
+    console.log(addResult.message + ": added " + addResult.result.length + " rows");
   } catch (err) {
     console.error(err);
   }
