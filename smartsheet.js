@@ -39,6 +39,11 @@ module.exports.getRowIds = async (sheetId) => {
 
 // Delete list of rowIds (comma-separated list) from Smartsheet
 module.exports.deleteRowsById = async (sheetId, rowIds) => {
+  /* if an empty list was provided, consider it a success */
+  if(rowIds === "") {
+    return { "message": "SUCCESS", "resultCode": 0, "result": [] };
+  }
+
   const options = {
     sheetId,
     rowId: rowIds,
